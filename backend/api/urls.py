@@ -23,11 +23,19 @@ from messages import views as messages_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('session/<int:pk>', games_views.GameDetailView.as_view()),
-    path('sessions', games_views.GameListView.as_view()),
-    path('users', accounts_views.UserListView.as_view()),
-    path('user/<int:pk>', accounts_views.UserDetailView.as_view()),
+    
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
     path('schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    
+    path('game/session', games_views.GameCreateView.as_view()),
+    path('game/session/<int:session_id>', games_views.GameDetailView.as_view()),
+    path('game/session/<int:session_id>/player', games_views.AddPlayerView.as_view()),
+    path('game/sessions', games_views.GameListView.as_view()),
+    
+    path('user', accounts_views.UserCreateView.as_view()),
+    path('user/<int:user_id>', accounts_views.UserDetailView.as_view()),
+    path('user/me', accounts_views.CurrentUserView.as_view()),
+    path('user/session', accounts_views.SessionView.as_view()),
+    path('users', accounts_views.UserListView.as_view()),
 ]
