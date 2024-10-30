@@ -16,7 +16,7 @@ class User(AbstractUser):
     wins = models.IntegerField(default=0)
     losses = models.IntegerField(default=0)
     abandons = models.IntegerField(default=0)
-    temporary = models.BooleanField(default = False)
+    temporary = models.BooleanField(default = False, blank=True)
     
     # Registered User Specific Fields
     email = models.EmailField('email address', unique=True, null=True)
@@ -25,21 +25,21 @@ class User(AbstractUser):
     # Django User Fields
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
-    
-    def save(self, *args, **kwargs):
-        if not self.email:
-            self.temporary = True
-        else:
-            self.temporary = False
-        super().save(*args, **kwargs)
+    PASSWORD_FIELD = 'password'
     
     def clean(self):
         super().clean()
-        if not self.temporary:
-            if not self.username:
+        temporary = self.context.get('temporary', False)
+        if temporary:
+            if "username" not in self.context:
                 self.username = generateName()
-            if not self.email:
-                raise ValidationError('Email is required for non-temporary users.')
-            if not self.password:
-                raise ValidationError('Password is required for non-temporary users.')
+
+        if not temporary:
+            errors = {}
+            required_fields = ['username', 'email', 'password']
+            for field in required_fields:
+                if field not in self.context:
+                    errors[field] = f'Field is required for non-temporary users.'
+            if errors:
+                raise ValidationError(errors)
         self.email = self.__class__.objects.normalize_email(self.email)

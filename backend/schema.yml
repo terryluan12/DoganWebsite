@@ -180,14 +180,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
           description: ''
-  /user/{user_id}:
+  /user/#{username}:
     get:
-      operationId: user_retrieve
+      operationId: user_#_retrieve
       parameters:
       - in: path
-        name: user_id
+        name: username
         schema:
-          type: integer
+          type: string
         required: true
       tags:
       - user
@@ -203,12 +203,12 @@ paths:
                 $ref: '#/components/schemas/User'
           description: ''
     put:
-      operationId: user_update
+      operationId: user_#_update
       parameters:
       - in: path
-        name: user_id
+        name: username
         schema:
-          type: integer
+          type: string
         required: true
       tags:
       - user
@@ -235,12 +235,12 @@ paths:
                 $ref: '#/components/schemas/User'
           description: ''
     patch:
-      operationId: user_partial_update
+      operationId: user_#_partial_update
       parameters:
       - in: path
-        name: user_id
+        name: username
         schema:
-          type: integer
+          type: string
         required: true
       tags:
       - user
@@ -267,12 +267,12 @@ paths:
                 $ref: '#/components/schemas/User'
           description: ''
     delete:
-      operationId: user_destroy
+      operationId: user_#_destroy
       parameters:
       - in: path
-        name: user_id
+        name: username
         schema:
-          type: integer
+          type: string
         required: true
       tags:
       - user
@@ -382,15 +382,8 @@ components:
     PatchedUser:
       type: object
       properties:
-        user_id:
-          type: integer
-          readOnly: true
         username:
           type: string
-          maxLength: 100
-        password:
-          type: string
-          nullable: true
           maxLength: 100
         email:
           type: string
@@ -398,18 +391,32 @@ components:
           nullable: true
           title: Email address
           maxLength: 254
+        password:
+          type: string
+          nullable: true
+          maxLength: 100
+        user_id:
+          type: integer
+          readOnly: true
+        game:
+          type: integer
+          readOnly: true
+          nullable: true
+        wins:
+          type: integer
+          readOnly: true
+        losses:
+          type: integer
+          readOnly: true
+        time_created:
+          type: string
+          format: date-time
+          readOnly: true
     User:
       type: object
       properties:
-        user_id:
-          type: integer
-          readOnly: true
         username:
           type: string
-          maxLength: 100
-        password:
-          type: string
-          nullable: true
           maxLength: 100
         email:
           type: string
@@ -417,8 +424,33 @@ components:
           nullable: true
           title: Email address
           maxLength: 254
+        password:
+          type: string
+          nullable: true
+          maxLength: 100
+        user_id:
+          type: integer
+          readOnly: true
+        game:
+          type: integer
+          readOnly: true
+          nullable: true
+        wins:
+          type: integer
+          readOnly: true
+        losses:
+          type: integer
+          readOnly: true
+        time_created:
+          type: string
+          format: date-time
+          readOnly: true
       required:
+      - game
+      - losses
+      - time_created
       - user_id
+      - wins
   securitySchemes:
     basicAuth:
       type: http

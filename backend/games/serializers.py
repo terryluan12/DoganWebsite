@@ -1,11 +1,11 @@
 from rest_framework import serializers
 
-from accounts.serializers import PublicUserSerializer
+from accounts.serializers import UserSerializer
 from games.models import Game
 
 
 class GameSerializer(serializers.ModelSerializer):
-    users = PublicUserSerializer(many=True, required=False)
+    users = UserSerializer(many=True, required=False)
     class Meta:
         model = Game
         fields = ['game_id', 'users']

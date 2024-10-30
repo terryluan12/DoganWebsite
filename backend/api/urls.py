@@ -34,8 +34,8 @@ urlpatterns = [
     path('game/sessions', games_views.GameListView.as_view()),
     
     path('user', accounts_views.UserCreateView.as_view()),
-    path('user/<int:user_id>', accounts_views.UserDetailView.as_view()),
     path('user/me', accounts_views.CurrentUserView.as_view()),
     path('user/session', accounts_views.SessionView.as_view()),
+    path('user/<username>', accounts_views.UserDetailView.as_view()),
     path('users', accounts_views.UserListView.as_view()),
 ]
