@@ -1,18 +1,21 @@
 from django.shortcuts import render
 from django.contrib.auth import login, logout, authenticate
 from django.http import Http404
+from rest_framework import permissions
 from rest_framework import generics, status
 from rest_framework.views import Response, APIView
 
 from .models import User
 from .serializers import UserSerializer
 from .utils import get_client_ip, generateName
+from .permissions import IsOwnerOrReadOnly
 
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
+    permission_classes = [IsOwnerOrReadOnly]
 
 class UserCreateView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -30,6 +33,7 @@ class CurrentUserView(generics.RetrieveAPIView):
 class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser]
 
 class SessionView(APIView):
     serializer_class = UserSerializer

@@ -3,6 +3,8 @@ import pytest
 from pytest_lazy_fixtures import lf
 import json
 
+from .models import User
+
 ### Fixtures
 
 @pytest.fixture
@@ -37,7 +39,30 @@ def LogOutRegisteredUserFixture(client, LogInRegisteredUserFixture):
     response = client.delete("/user/session")
     assert response.status_code == 200
     
+@pytest.fixture
+def LogInSuperUserFixture(client):
+    user = User.objects.create_superuser(username="admin", email="admin@test.com", password="adminPassword")
+    user.save()
+    response = client.post("/user/session", {"username": "admin", "password": "adminPassword"})
+    assert response.status_code == 200
+    
 ### Test Cases for UserDetailView
+
+@pytest.mark.django_db
+def test_UseClientViewWhileUnauthorized(client, LogOutRegisteredUserFixture):
+    response = client.put("/user/testUser", {
+        "username": "newUsername",
+        "email": "newEmail@test.com",
+        "password": "newPassword"
+    }, content_type='application/json')
+    newResponse = client.get("/user/me")
+    assert response.status_code == 403
+    response = client.patch("/user/testUser", {
+        "username": "newUsername",
+    }, content_type='application/json')
+    assert response.status_code == 403
+    response = client.get("/user/testUser")
+    assert response.status_code == 200
 
 @pytest.mark.parametrize("UserFixture",[
     lf("LogInTemporaryUserFixture"),
@@ -83,8 +108,7 @@ def test_ChangeWholeUser(client, LogInRegisteredUserFixture):
 def test_ChangeUndefinedUser(client):
     url = "/user/testUser"
     response = client.put(url, {"username": "newUsername", "email": "newEmail@gmail.com", "password": "newPassword"})
-    assert response.status_code == 404
-    assert response.data["detail"] == "No User matches the given query."
+    assert response.status_code == 403
 
 @pytest.mark.django_db
 def test_DeleteUser(client, LogInRegisteredUserFixture):
@@ -92,13 +116,6 @@ def test_DeleteUser(client, LogInRegisteredUserFixture):
     response = client.delete(url)
     assert response.status_code == 204
     response = client.get(url)
-    assert response.status_code == 404
-    assert response.data["detail"] == "No User matches the given query."
-
-@pytest.mark.django_db
-def test_DeleteUndefinedUser(client):
-    url = "/user/testUser"
-    response = client.delete(url)
     assert response.status_code == 404
     assert response.data["detail"] == "No User matches the given query."
     
@@ -161,18 +178,13 @@ def test_CheckLoggedInUser(client, UserFixture):
 ### Test Cases for UserListView
 
 @pytest.mark.django_db
-def test_CheckZeroUsers(client):
+def test_CheckUsersWithNoAuthentication(client):
     url = "/users"
     response = client.get(url)
-    assert response.status_code == 200
-    assert response.data == []
+    assert response.status_code == 403
 
-@pytest.mark.parametrize("UserFixture",[
-    lf("LogInTemporaryUserFixture"),
-    lf("LogInRegisteredUserFixture"),
-])
 @pytest.mark.django_db
-def test_CheckOneUser(client, UserFixture):
+def test_CheckOneUser(client, LogInSuperUserFixture):
     url = "/users"
     response = client.get(url)
     assert response.status_code == 200
