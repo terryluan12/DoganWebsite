@@ -66,5 +66,14 @@ class SessionView(APIView):
             return Response({
                 'message': 'User not logged in.'
             }, status=status.HTTP_401_UNAUTHORIZED)
+        if request.user.temporary:
+            request.user.delete()
+        if request.user.game:
+            request.user.game.users.remove(request.user)
+            if request.user.game.users.count() == 0:
+                request.user.game.delete()
+            elif request.user.game.admin == request.user:
+                request.user.game.admin = request.user.game.users.first()
+                request.user.game.save()
         logout(request)
         return Response(status=status.HTTP_200_OK)

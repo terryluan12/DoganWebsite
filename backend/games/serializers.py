@@ -6,14 +6,9 @@ from games.models import Game
 
 class GameSerializer(serializers.ModelSerializer):
     users = UserSerializer(many=True, required=False)
+    admin = UserSerializer(required=False)
     class Meta:
         model = Game
-        fields = ['game_id', 'users']
-        read_only_fields = ['game_id']
+        fields = ['users', 'game_name', 'admin']
+        read_only_fields = ['game_id', 'game_name']
         depth = 2
-    def create(self, validated_data):
-        users_data = validated_data.pop('users')
-        game = Game.objects.create(**validated_data)
-        for user_data in users_data:
-            game.users.add(user_data)
-        return game

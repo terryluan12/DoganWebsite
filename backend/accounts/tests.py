@@ -1,6 +1,7 @@
 import pytest
 
 from pytest_lazy_fixtures import lf
+from rest_framework.test import APIClient
 import json
 
 from .models import User
@@ -40,11 +41,12 @@ def LogOutRegisteredUserFixture(client, LogInRegisteredUserFixture):
     assert response.status_code == 200
     
 @pytest.fixture
-def LogInSuperUserFixture(client):
+def superClient(client):
     user = User.objects.create_superuser(username="admin", email="admin@test.com", password="adminPassword")
     user.save()
     response = client.post("/user/session", {"username": "admin", "password": "adminPassword"})
     assert response.status_code == 200
+    return client
     
 ### Test Cases for UserDetailView
 
@@ -184,9 +186,9 @@ def test_CheckUsersWithNoAuthentication(client):
     assert response.status_code == 403
 
 @pytest.mark.django_db
-def test_CheckOneUser(client, LogInSuperUserFixture):
+def test_CheckOneUser(client, superClient):
     url = "/users"
-    response = client.get(url)
+    response = superClient.get(url)
     assert response.status_code == 200
     assert len(response.data) == 1
     
@@ -216,12 +218,16 @@ def test_LogInRegisteredUser(client):
     assert session_response.status_code == 200
     assert session_response.data["message"] == "User logged in."
 
-@pytest.mark.parametrize("UserFixture",[
-    lf("LogInTemporaryUserFixture"),
-    lf("LogInRegisteredUserFixture"),
-])
 @pytest.mark.django_db
-def test_LogOutUser(client, UserFixture):
+def test_LogInRegisteredUserWithWrongPassword(client):
+    url = "/user/session"
+    user = {"username": "testUser", "password": "wrongPassword"}
+    response = client.post(url, user)
+    assert response.status_code == 401
+    assert response.data["error"] == "Invalid username or password."
+    
+@pytest.mark.django_db
+def test_LogOutRegisteredUser(client, LogInRegisteredUserFixture):
     oldUsername = client.get("/user/me").data["username"]
     url = "/user/session"
     response = client.delete(url)
@@ -235,6 +241,22 @@ def test_LogOutUser(client, UserFixture):
     # Check the user still exists
     response = client.get(f"/user/{oldUsername}")
     assert response.status_code == 200
+
+@pytest.mark.django_db
+def test_LogOutTemporaryUser(client, LogInTemporaryUserFixture):
+    oldUsername = client.get("/user/me").data["username"]
+    url = "/user/session"
+    response = client.delete(url)
+    assert response.status_code == 200
+    assert response.data == None
+    
+    # Check the user is logged out
+    response = client.get("/user/me")
+    assert response.status_code == 404
+    
+    # Check the user is deleted
+    response = client.get(f"/user/{oldUsername}")
+    assert response.status_code == 404
     
 @pytest.mark.django_db
 def test_LogOutNoUser(client):
@@ -242,3 +264,39 @@ def test_LogOutNoUser(client):
     response = client.delete(url)
     assert response.status_code == 401
     assert response.data["message"] == "User not logged in."
+    
+@pytest.mark.django_db 
+def test_LogOutDeletesSinglePlayerGame(client, superClient, LogInRegisteredUserFixture):
+    client.post("/game/session/testGame")
+    response = client.delete("/user/session")
+    assert response.status_code == 200
+    response = superClient.get("/game/testGame")
+    assert response.status_code == 404
+    assert response.data["detail"] == "No Game matches the given query."
+
+@pytest.mark.django_db
+def test_LogOutRemovesPlayerFromMultiplayerGame(client, superClient, LogInRegisteredUserFixture):
+    # Create a game using player 1
+    response = client.post("/game/testGame")
+    response = client.post("/game/testGame/player")
+    
+    # Create and Login with player 2
+    client2 = APIClient()
+    client2.post("/user", {"username": "testUser1", "email": "test1@test.com", "password": "test1Password"})
+    response = client2.post("/user/session", {"username": "testUser1", "password": "test1Password"})
+    assert response.status_code == 200
+    
+    # Add player 2 to the game
+    response = client2.post("/game/testGame/player")
+    print(f"Response: {response.data}")
+    assert response.status_code == 201
+    
+    # Log out with Player 1
+    response = client.delete("/user/session")
+    assert response.status_code == 200
+    
+    # Check that player 2 is still in the game
+    response = superClient.get("/game/testGame")
+    assert response.status_code == 200
+    assert "testUser1" in [user["username"] for user in response.data["users"]]
+    assert response.data["admin"]["username"] == "testUser1"

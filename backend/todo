@@ -1,12 +1,12 @@
-POST /game/session - Create a new Game Session. Form data should include the user that is creating the session
-GET /game/session/:session_id: - Get a Game session details
-DELETE /game/session/:session_id: - Delete a new Game Session.
-POST /game/session/:session_id:/player - Add a player to a game
+POST /game/session/<session_id> - Create a new Game Session with session_name <session_id>. Form data should include the user that is creating the session
+GET /game/session/<session_id> - Get a Game session details
+DELETE /game/session/<session_id> - Delete a new Game Session.
+POST /game/session/<session_id>/player - Add a player to a game
 
 GET /game/sessions - Get a list of sessions
 
 POST /user - Create a new user
-DELETE /user/:user_id: - Delete user with :user_id:
+DELETE /user/<user_id> - Delete user with <user_id>
 PUT /user - Change existing user
 GET /users/me - Get current user
 

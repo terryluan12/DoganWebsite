@@ -28,10 +28,10 @@ urlpatterns = [
     path('schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     
-    path('game/session', games_views.GameCreateView.as_view()),
-    path('game/session/<int:session_id>', games_views.GameDetailView.as_view()),
-    path('game/session/<int:session_id>/player', games_views.AddPlayerView.as_view()),
-    path('game/sessions', games_views.GameListView.as_view()),
+    path('game/<game_name>', games_views.GameDetailView.as_view()),
+    path('game/<game_name>/player', games_views.GamePlayerView.as_view()),
+    path('game/<game_name>/player/<username>', games_views.RemovePlayerView.as_view()),
+    path('games', games_views.GameListView.as_view()),
     
     path('user', accounts_views.UserCreateView.as_view()),
     path('user/me', accounts_views.CurrentUserView.as_view()),

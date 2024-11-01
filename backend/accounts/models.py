@@ -11,7 +11,7 @@ from games.models import Game
 class User(AbstractUser):
     user_id = models.AutoField(primary_key=True, editable=False, auto_created=True)
     username = models.CharField(unique=True, default=generateName, max_length=100, blank=True)
-    game = models.ForeignKey(Game, related_name="users", null=True, on_delete=models.SET_NULL)
+    game = models.ForeignKey(Game, related_name="users", null=True, blank=True, on_delete=models.SET_NULL)
     time_created = models.DateTimeField(default=timezone.now)
     wins = models.IntegerField(default=0)
     losses = models.IntegerField(default=0)

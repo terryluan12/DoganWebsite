@@ -4,9 +4,35 @@ info:
   version: 0.0.1
   description: API for Dogan
 paths:
-  /game/session:
+  /game/{game_name}:
+    get:
+      operationId: game_retrieve
+      parameters:
+      - in: path
+        name: game_name
+        schema:
+          type: string
+        required: true
+      tags:
+      - game
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+          description: ''
     post:
-      operationId: game_session_create
+      operationId: game_create
+      parameters:
+      - in: path
+        name: game_name
+        schema:
+          type: string
+        required: true
       tags:
       - game
       requestBody:
@@ -20,6 +46,56 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/Game'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+          description: ''
+    delete:
+      operationId: game_destroy
+      parameters:
+      - in: path
+        name: game_name
+        schema:
+          type: string
+        required: true
+      tags:
+      - game
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /game/{game_name}/player:
+    post:
+      operationId: game_player_create
+      parameters:
+      - in: path
+        name: game_name
+        schema:
+          type: string
+        required: true
+      tags:
+      - game
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Game'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Game'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Game'
+        required: true
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -31,115 +107,33 @@ paths:
               schema:
                 $ref: '#/components/schemas/Game'
           description: ''
-  /game/session/{session_id}:
-    get:
-      operationId: game_session_retrieve
-      parameters:
-      - in: path
-        name: session_id
-        schema:
-          type: integer
-        required: true
-      tags:
-      - game
-      security:
-      - cookieAuth: []
-      - basicAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Game'
-          description: ''
+  /game/{game_name}/player/{player_name}:
     delete:
-      operationId: game_session_destroy
+      operationId: game_player_destroy
       parameters:
       - in: path
-        name: session_id
+        name: game_name
         schema:
-          type: integer
+          type: string
+        required: true
+      - in: path
+        name: player_name
+        schema:
+          type: string
         required: true
       tags:
       - game
       security:
       - cookieAuth: []
       - basicAuth: []
-      - {}
       responses:
         '204':
           description: No response body
-  /game/session/{session_id}/player:
-    put:
-      operationId: game_session_player_update
-      parameters:
-      - in: path
-        name: session_id
-        schema:
-          type: integer
-        required: true
-      tags:
-      - game
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Game'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Game'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Game'
-      security:
-      - cookieAuth: []
-      - basicAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Game'
-          description: ''
-    patch:
-      operationId: game_session_player_partial_update
-      parameters:
-      - in: path
-        name: session_id
-        schema:
-          type: integer
-        required: true
-      tags:
-      - game
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedGame'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedGame'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedGame'
-      security:
-      - cookieAuth: []
-      - basicAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Game'
-          description: ''
-  /game/sessions:
+  /games:
     get:
-      operationId: game_sessions_list
+      operationId: games_list
       tags:
-      - game
+      - games
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -180,9 +174,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
           description: ''
-  /user/#{username}:
+  /user/{username}:
     get:
-      operationId: user_#_retrieve
+      operationId: user_retrieve
       parameters:
       - in: path
         name: username
@@ -194,7 +188,6 @@ paths:
       security:
       - cookieAuth: []
       - basicAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -203,7 +196,7 @@ paths:
                 $ref: '#/components/schemas/User'
           description: ''
     put:
-      operationId: user_#_update
+      operationId: user_update
       parameters:
       - in: path
         name: username
@@ -226,7 +219,6 @@ paths:
       security:
       - cookieAuth: []
       - basicAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -235,7 +227,7 @@ paths:
                 $ref: '#/components/schemas/User'
           description: ''
     patch:
-      operationId: user_#_partial_update
+      operationId: user_partial_update
       parameters:
       - in: path
         name: username
@@ -258,7 +250,6 @@ paths:
       security:
       - cookieAuth: []
       - basicAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -267,7 +258,7 @@ paths:
                 $ref: '#/components/schemas/User'
           description: ''
     delete:
-      operationId: user_#_destroy
+      operationId: user_destroy
       parameters:
       - in: path
         name: username
@@ -279,7 +270,6 @@ paths:
       security:
       - cookieAuth: []
       - basicAuth: []
-      - {}
       responses:
         '204':
           description: No response body
@@ -345,7 +335,6 @@ paths:
       security:
       - cookieAuth: []
       - basicAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -360,25 +349,18 @@ components:
     Game:
       type: object
       properties:
-        game_id:
-          type: integer
-          readOnly: true
         users:
           type: array
           items:
             $ref: '#/components/schemas/User'
+        game_name:
+          type: string
+          readOnly: true
+        admin:
+          $ref: '#/components/schemas/User'
       required:
-      - game_id
-    PatchedGame:
-      type: object
-      properties:
-        game_id:
-          type: integer
-          readOnly: true
-        users:
-          type: array
-          items:
-            $ref: '#/components/schemas/User'
+      - admin
+      - game_name
     PatchedUser:
       type: object
       properties:
